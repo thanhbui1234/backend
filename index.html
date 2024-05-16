@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
+</head>
+
+<body>
+    <ul id="product-list"></ul>
+    <div id="pagination"></div>
+
+    <script>
+        const productList = document.getElementById('product-list');
+        const pagination = document.getElementById('pagination');
+        const productsPerPage = 10; // Số sản phẩm hiển thị trên mỗi trang
+        let currentPage = 1; 
+
+        fetch('http://127.0.0.1:9000/api/product/')
+            .then(response => response.json())
+            .then(data => {
+                // Xử lý dữ liệu nhận được từ API
+                console.log(data.data);
+                const totalProducts = data.data.length; // Tổng số sản phẩm
+                const totalPages = Math.ceil(totalProducts / productsPerPage); // Tính tổng số trang
+
+                // Tạo các nút phân trang
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.addEventListener('click', () => {
+                        currentPage = i;
+                        renderProducts(data.data);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+
+                // Hàm hiển thị sản phẩm trên trang hiện tại
+                const renderProducts = (products) => {
+                    productList.innerHTML = ''; // Xóa danh sách sản phẩm cũ
+
+                    // Tính vị trí bắt đầu và kết thúc của sản phẩm trên trang hiện tại
+                    const startIndex = (currentPage - 1) * productsPerPage;
+                    const endIndex = startIndex + productsPerPage;
+
+                    // Lấy các sản phẩm trên trang hiện tại
+                    const productsOnCurrentPage = products.slice(startIndex, endIndex);
+
+                    // Áp dụng các truy vấn và sắp xếp tùy theo yêu cầu
+                    const sortedProducts = productsOnCurrentPage.sort((a, b) => a.price - b.price); // Sắp xếp sản phẩm theo giá tăng dần
+
+                    // Hiển thị danh sách sản phẩm trên trang hiện tại
+                    sortedProducts.forEach(product => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = product.product_id;
+                        productList.appendChild(listItem);
+                    });
+                };
+
+                renderProducts(data.data); // Hiển thị sản phẩm trên trang hiện tại mặc định
+            })
+            .catch(error => {
+                // Xử lý lỗi nếu có
+                console.error(error);
+            });
+    </script>
+</body>
+
+</html>
